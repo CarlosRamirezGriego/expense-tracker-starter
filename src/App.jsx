@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import './App.css'
 
 function App() {
@@ -22,6 +23,28 @@ function App() {
   const [deleteId, setDeleteId] = useState(null);
 
   const categories = ["food", "housing", "utilities", "transport", "entertainment", "salary", "other"];
+
+  const CATEGORY_COLORS = {
+    food: '#FF8042',
+    housing: '#0088FE',
+    utilities: '#FFBB28',
+    transport: '#00C49F',
+    entertainment: '#8884d8',
+    salary: '#82ca9d',
+    other: '#ffc658',
+  };
+
+  const spendingByCategory = transactions
+    .filter(t => t.type === "expense")
+    .reduce((acc, t) => {
+      const existing = acc.find(item => item.name === t.category);
+      if (existing) {
+        existing.value += Number(t.amount);
+      } else {
+        acc.push({ name: t.category, value: Number(t.amount) });
+      }
+      return acc;
+    }, []);
 
   const totalIncome = transactions
     .filter(t => t.type === "income")
@@ -93,6 +116,43 @@ function App() {
           <p className="balance-amount">${balance}</p>
         </div>
       </div>
+
+      {spendingByCategory.length > 0 && (
+        <div className="chart-section">
+          <h2>Spending by Category</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={spendingByCategory}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+                  const RADIAN = Math.PI / 180;
+                  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                  return (
+                    <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={13}>
+                      {`${(percent * 100).toFixed(0)}%`}
+                    </text>
+                  );
+                }}
+                outerRadius={110}
+                innerRadius={50}
+                dataKey="value"
+                paddingAngle={2}
+              >
+                {spendingByCategory.map((entry) => (
+                  <Cell key={entry.name} fill={CATEGORY_COLORS[entry.name] || '#8884d8'} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => `$${value}`} />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       <div className="add-transaction">
         <h2>Add Transaction</h2>
