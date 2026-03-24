@@ -19,6 +19,7 @@ function App() {
   const [category, setCategory] = useState("food");
   const [filterType, setFilterType] = useState("all");
   const [filterCategory, setFilterCategory] = useState("all");
+  const [deleteId, setDeleteId] = useState(null);
 
   const categories = ["food", "housing", "utilities", "transport", "entertainment", "salary", "other"];
 
@@ -60,6 +61,18 @@ function App() {
     setCategory("food");
   };
 
+  const handleDelete = (id) => {
+    setDeleteId(id);
+  };
+
+  const confirmDelete = () => {
+    setTransactions(transactions.filter(t => t.id !== deleteId));
+    setDeleteId(null);
+  };
+
+  const cancelDelete = () => {
+    setDeleteId(null);
+  };
 
   return (
     <div className="app">
@@ -132,7 +145,7 @@ function App() {
               <th>Description</th>
               <th>Category</th>
               <th>Amount</th>
-
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -144,12 +157,27 @@ function App() {
                 <td className={t.type === "income" ? "income-amount" : "expense-amount"}>
                   {t.type === "income" ? "+" : "-"}${t.amount}
                 </td>
-
+                <td>
+                  <button className="delete-btn" onClick={() => handleDelete(t.id)}>Delete</button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {deleteId !== null && (
+        <div className="modal-overlay" onClick={cancelDelete}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Delete Transaction</h3>
+            <p>Are you sure you want to delete this transaction?</p>
+            <div className="modal-actions">
+              <button className="modal-cancel-btn" onClick={cancelDelete}>Cancel</button>
+              <button className="modal-delete-btn" onClick={confirmDelete}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
